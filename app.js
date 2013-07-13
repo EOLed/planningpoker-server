@@ -6,10 +6,10 @@
 var express = require('express'),
     routes = require('./routes'),
     room = require('./routes/room'),
-    http = require('http'),
-    path = require('path');
-
-var app = express();
+    path = require('path'),
+    app = express(),
+    server = require('http').createServer(app),
+    io = require('socket.io').listen(server);
 
 // all environments
 app.set('port', process.env.PORT || 3000);
@@ -36,6 +36,10 @@ app.get('/room/:slug', room.read);
 app.delete('/room/:slug', room.destroy);
 app.put('/room/join/:slug', room.join);
 
-http.createServer(app).listen(app.get('port'), function(){
+server.listen(app.get('port'), function (){
   console.log('Planning Poker server listening on port ' + app.get('port'));
+});
+
+io.sockets.on('connection', function (socket) {
+  // wired up and ready to send
 });

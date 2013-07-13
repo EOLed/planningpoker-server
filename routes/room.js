@@ -58,21 +58,21 @@ module.exports = (function () {
     create: function (req, res) {
       var slug = req.param('slug');
       _store.create({ slug: slug });
-      return res.send(_store.findBySlug(slug));
+      return res.json(_store.findBySlug(slug));
     },
 
     read: function (req, res) {
       var slug = req.param('slug');
-      res.send(_store.findBySlug(slug));
+      res.json(_store.findBySlug(slug));
     },
 
     destroy: function (req, res) {
       var slug = req.param('slug');
-      res.send(_store.destroy(slug));
+      res.json(_store.destroy(slug));
     },
 
     index: function (req, res) {
-      res.send(_store.findAll(), 200);
+      res.json(_store.findAll(), 200);
     },
 
     join: function (req, res) {
@@ -90,7 +90,7 @@ module.exports = (function () {
       room.users = _addOrReplaceUser(room.users || [], user);
       _store.update(room);
 
-      return res.send(room, 200);
+      return res.json(room, 200);
     }
   };
 } ());
