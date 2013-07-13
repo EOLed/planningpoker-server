@@ -1,4 +1,3 @@
-/*jslint es5: true*/
 /**
  * Module dependencies.
  */
@@ -41,5 +40,5 @@ server.listen(app.get('port'), function (){
 });
 
 io.sockets.on('connection', function (socket) {
-  // wired up and ready to send
+  room.setSocket(socket);
 });

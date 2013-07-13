@@ -1,5 +1,5 @@
 module.exports = (function () {
-  console.log('reconstruct room controller');
+  var _socket;
   var _store = (function () {
     var _backend = [];
 
@@ -54,10 +54,16 @@ module.exports = (function () {
     return users;
   };
 
+  var _broadcastUserJoinEvent = function (room, user) {
+    var eventName = 'message ' + room.key;
+    var message = { user: user, room: room, type: 'join' };
+    _socket.broadcast.emit(eventName, message);
+  };
+
   return {
     create: function (req, res) {
       var slug = req.param('slug');
-      _store.create({ slug: slug });
+      _store.create({ slug: slug, key: Math.random().toString(36).substring(7) });
       return res.json(_store.findBySlug(slug));
     },
 
@@ -90,7 +96,13 @@ module.exports = (function () {
       room.users = _addOrReplaceUser(room.users || [], user);
       _store.update(room);
 
+      _broadcastUserJoinEvent(room, user);
+
       return res.json(room, 200);
+    },
+
+    setSocket: function (socket) {
+      _socket = socket;
     }
   };
 } ());
