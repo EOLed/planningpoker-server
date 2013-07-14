@@ -9,8 +9,8 @@ module.exports = function (grunt) {
       all: ['api/**/*.js', 'config/*.js', '*.js']
     },
     jasmine_node: {
-      projectRoot: './api/controllers',
-      specFolders: ['./test/spec']
+      projectRoot: '.',
+      specFolders: ['test/spec']
     },
     express: {
       custom: {
@@ -27,5 +27,6 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-express');
 
   grunt.registerTask('default', ['jshint', 'jasmine_node']);
+  grunt.registerTask('test', ['jasmine_node']);
   grunt.registerTask('s', ['express', 'express-keepalive']);
 };
