@@ -10,5 +10,11 @@
     "jade": "*",
     "less-middleware": "*",
     "socket.io": "~0.9.16"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-jshint": "~0.6.0",
+    "grunt-express": "~0.3.6",
+    "grunt-jasmine-node": "~0.1.0"
   }
 }

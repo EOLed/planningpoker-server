@@ -42,3 +42,9 @@ server.listen(app.get('port'), function (){
 io.sockets.on('connection', function (socket) {
   room.setSocket(socket);
 });
+
+exports = module.exports = server;
+
+exports.use = function() {
+  app.use.apply(app, arguments);
+};

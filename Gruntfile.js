@@ -1,3 +1,7 @@
+'use strict';
+
+var path = require('path');
+
 module.exports = function (grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -9,7 +13,12 @@ module.exports = function (grunt) {
       specFolders: ['./test/spec']
     },
     express: {
-      default_option: {}
+      custom: {
+        options: {
+          port: 3000,
+          server: path.resolve('app')
+        }
+      }
     }
   });
 
@@ -18,4 +27,5 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-express');
 
   grunt.registerTask('default', ['jshint', 'jasmine_node']);
+  grunt.registerTask('s', ['express', 'express-keepalive']);
 };
