@@ -26,7 +26,7 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-jasmine-node');
   grunt.loadNpmTasks('grunt-express');
 
-  grunt.registerTask('default', ['jshint', 'jasmine_node']);
+//  grunt.registerTask('default', ['jshint', 'jasmine_node']);
   grunt.registerTask('test', ['jasmine_node']);
   grunt.registerTask('s', ['express', 'express-keepalive']);
 };

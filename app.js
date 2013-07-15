@@ -4,7 +4,8 @@
 
 var express = require('express'),
     routes = require('./routes'),
-    room = require('./routes/room'),
+    roomStore = require('./stores/roomStore'),
+    room = require('./routes/room') ({ roomStore: roomStore }),
     path = require('path'),
     app = express(),
     server = require('http').createServer(app),

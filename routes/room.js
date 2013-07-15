@@ -1,46 +1,6 @@
-module.exports = (function () {
+module.exports = function (options) {
   var _socket;
-  var _store = (function () {
-    var _backend = [];
-
-    var _deleteBySlug = function (slug) {
-      for (var i = 0; i < _backend.length; i++) {
-        if (_backend[i].slug === slug) {
-          _backend.splice(i, 1);
-          return;
-        }
-      }
-    };
-
-    return {
-      create: function (room) {
-        _backend.push(room);
-      },
-
-      findBySlug: function (slug) {
-        for (var i = 0; i < _backend.length; i++) {
-          if (_backend[i].slug == slug) {
-            return _backend[i];
-          }
-        }
-
-        return {};
-      },
-
-      findAll: function () {
-        return _backend;
-      },
-
-      update: function (room) {
-        _deleteBySlug(room.slug);
-        _backend.push(room);
-      },
-
-      destroy: function (slug) {
-        _deleteBySlug(slug);
-      }
-    };
-  }) ();
+  var _store = options.roomStore;
 
   var _addOrReplaceUser = function (users, user) {
     for (var i = 0; i < users.length; i++) {
@@ -63,7 +23,8 @@ module.exports = (function () {
   return {
     create: function (req, res) {
       var slug = req.param('slug');
-      _store.create({ slug: slug, key: Math.random().toString(36).substring(7) });
+      var host = req.param('host');
+      _store.create({ slug: slug, host: host });
       return res.json(_store.findBySlug(slug));
     },
 
@@ -105,4 +66,4 @@ module.exports = (function () {
       _socket = socket;
     }
   };
-} ());
+};
