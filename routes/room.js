@@ -43,8 +43,7 @@ module.exports = function (options) {
 
     join: function (req, res) {
       var slug = req.param('slug'),
-          user = req.param('user'),
-          ioRoom = 'pp:' + slug;
+          user = req.param('user');
 
       if (typeof user === 'string') {
         user = JSON.parse(user);
