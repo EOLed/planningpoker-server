@@ -2,39 +2,55 @@
 /*global spyOn: false, describe: false, beforeEach: false, afterEach: false, inject: false, it: false, expect: false*/
 'use strict';
 
-var _roomStore_ = require('../../../stores/roomStore'),
+var roomStore = require('../../../stores/roomStore'),
     sinon = require('sinon');
 
 describe('Route: room', function () {
-  var roomStore, room, _req_, _res_;
+  var mockRoomStore, room, _req_, _res_;
 
   beforeEach(function () {
-    roomStore = sinon.mock(_roomStore_);
-    room = require('../../../routes/room')({ roomStore: _roomStore_ });
+    mockRoomStore = sinon.mock(roomStore);
+    room = require('../../../routes/room')({ roomStore: roomStore });
     _req_ = {};
     _res_ = {};
   });
 
   afterEach(function () {
-    roomStore.restore();
+    mockRoomStore.restore();
   });
 
   describe('create', function () {
+    var host;
+    var paramsStub;
+    var mockResponse;
+
     beforeEach(function () {
       _req_.param = function () {};
       _res_.json = function () {};
+      host = { id: 'hostUserId', username: 'achan', name: 'Amos Chan' };
+      paramsStub = sinon.stub(_req_, 'param')
+                        .withArgs('slug').returns('dummyslug')
+                        .withArgs('host').returns(host);
+      mockResponse = sinon.mock(_res_);
+      mockRoomStore.expects('create')
+                   .withArgs({ slug: 'dummyslug', host: host })
+                   .returns({ slug: 'dummyslug', host: host });
+    });
+
+    afterEach(function () {
+      paramsStub.reset();
+      mockRoomStore.restore();
     });
 
     it('should create a new room with values from params', function () {
-      var host = { id: 'hostUserId', username: 'achan', name: 'Amos Chan' };
-      var paramsStub = sinon.stub(_req_, 'param')
-                            .withArgs('slug').returns('dummyslug')
-                            .withArgs('host').returns(host);
-
-      roomStore.expects('create').withArgs({ slug: 'dummyslug', host: host });
       room.create(_req_, _res_);
-      roomStore.verify();
-      paramsStub.reset();
+      mockRoomStore.verify();
+    });
+
+    it('should return json of the room that was just created', function () {
+      mockResponse.expects('json').withArgs({ slug: 'dummyslug', host: host });
+      room.create(_req_, _res_);
+      mockResponse.verify();
     });
   });
 });

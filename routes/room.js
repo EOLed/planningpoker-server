@@ -24,8 +24,7 @@ module.exports = function (options) {
     create: function (req, res) {
       var slug = req.param('slug');
       var host = req.param('host');
-      _store.create({ slug: slug, host: host });
-      return res.json(_store.findBySlug(slug));
+      return res.json(_store.create({ slug: slug, host: host }));
     },
 
     read: function (req, res) {

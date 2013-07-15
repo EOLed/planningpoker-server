@@ -14,6 +14,7 @@ module.exports = (function () {
     create: function (room) {
       room.key = Math.random().toString(36).substring(7);
       _backend.push(room);
+      return room;
     },
 
     findBySlug: function (slug) {
