@@ -2,49 +2,44 @@
 /*global spyOn: false, describe: false, beforeEach: false, afterEach: false, inject: false, it: false, expect: false*/
 'use strict';
 
-var roomStore = require('../../../stores/roomStore'),
+var roomStore = require('../../../stores/roomStore') ({ db: { collection: function () {} } }),
     sinon = require('sinon'),
     host = { id: 'hostUserId', username: 'achan', name: 'Amos Chan' };
 
 describe('Route: room', function () {
-  var mockRoomStore, room, _req_, _res_;
+  var room, _req_, _res_;
 
   beforeEach(function () {
-    mockRoomStore = sinon.mock(roomStore);
     room = require('../../../routes/room')({ roomStore: roomStore });
     _req_ = { param: function () {} };
     _res_ = { json: function () {} };
   });
 
   afterEach(function () {
-    mockRoomStore.restore();
   });
 
   describe('create', function () {
-    var paramsStub;
-    var mockResponse;
+    var paramsStub, mockResponse, createStub;
 
     beforeEach(function () {
       paramsStub = sinon.stub(_req_, 'param')
                         .withArgs('slug').returns('dummyslug')
                         .withArgs('host').returns(host);
       mockResponse = sinon.mock(_res_);
-      mockRoomStore.expects('create')
-                   .withArgs({ slug: 'dummyslug', host: host })
-                   .returns({ slug: 'dummyslug', host: host });
+      createStub = sinon.stub(roomStore, 'create');
     });
 
     afterEach(function () {
-      paramsStub.reset();
-      mockRoomStore.restore();
+      roomStore.create.restore();
     });
 
     it('should create a new room with values from params', function () {
       room.create(_req_, _res_);
-      mockRoomStore.verify();
+      expect(createStub.calledWith({ slug: 'dummyslug', host: host })).toBeTruthy();
     });
 
     it('should return json of the room that was just created', function () {
+      createStub.yieldsTo('onsuccess', { slug: 'dummyslug', host: host });
       mockResponse.expects('json').withArgs({ slug: 'dummyslug', host: host });
       room.create(_req_, _res_);
       mockResponse.verify();

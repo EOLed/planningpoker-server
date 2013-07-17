@@ -1,43 +1,53 @@
-module.exports = (function () {
-  var _backend = [];
+module.exports = function (options) {
+  var rooms = options.db.collection('rooms');
 
-  var _deleteBySlug = function (slug) {
-    for (var i = 0; i < _backend.length; i++) {
-      if (_backend[i].slug === slug) {
-        _backend.splice(i, 1);
-        return;
+  var find = function (criteria, options) {
+    rooms.find(criteria, function(err, rooms) {
+      doCallback(options, err, rooms);
+    });
+  };
+
+  var doCallback = function(options, err, value) {
+    if (err) {
+      if (typeof options.onfailure === 'undefined') {
+        return options.onfailure(err);
       }
+    } else if (options.onsuccess) {
+      return options.onsuccess(value);
     }
   };
 
   return {
-    create: function (room) {
+    create: function (room, options) {
       room.key = Math.random().toString(36).substring(7);
-      _backend.push(room);
+      rooms.save(room, function(err, room) {
+        doCallback(options, err, room);
+      });
       return room;
     },
 
-    findBySlug: function (slug) {
-      for (var i = 0; i < _backend.length; i++) {
-        if (_backend[i].slug == slug) {
-          return _backend[i];
-        }
-      }
-
-      return {};
+    findBySlug: function (slug, options) {
+      find({ slug: slug }, options);
     },
 
-    findAll: function () {
-      return _backend;
+    findAll: function (options) {
+      find({}, options);
     },
 
-    update: function (room) {
-      _deleteBySlug(room.slug);
-      _backend.push(room);
+    setStatusForUser: function(user, room, status) {
+      rooms.update({ slug: room.slug, users: { $elemMatch: { username: user.username } } },
+                   { $set: { 'users.$.status': status } } );
+    },
+
+    addUserToRoom: function(user, slug, options) {
+      rooms.findAndModify({ query: { slug: slug }, update: { $addToSet: { users: user } }, new: true },
+                          function (err, room) {
+                            doCallback(options, err, room);
+                          });
     },
 
     destroy: function (slug) {
-      _deleteBySlug(slug);
+      rooms.remove({ slug: slug }, true);
     }
   };
-}) ();
+};

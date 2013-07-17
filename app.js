@@ -4,7 +4,8 @@
 
 var express = require('express'),
     routes = require('./routes'),
-    roomStore = require('./stores/roomStore'),
+    db = require('mongojs') ('planningpoker'),
+    roomStore = require('./stores/roomStore') ({ db: db }),
     room = require('./routes/room') ({ roomStore: roomStore }),
     path = require('path'),
     app = express(),
