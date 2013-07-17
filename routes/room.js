@@ -14,6 +14,15 @@ module.exports = function (options) {
       var host = req.param('host');
 
       var onsuccess = function (room) {
+        console.log('listening for "message ' +  room.key + '" messages...');
+        _socket.on('message ' + room.key, function (data) {
+          console.log('message received.... ' + JSON.stringify(data));
+          if (data.type === 'commit') {
+            commit(data.user, data.room, data.value);
+          }
+          _socket.broadcast.emit('message ' + room.key, data);
+        });
+
         return res.json(room);
       };
 
@@ -22,6 +31,10 @@ module.exports = function (options) {
       };
 
       _store.create({ slug: slug, host: host }, { onsuccess: onsuccess, onfailure: onfailure });
+    },
+
+    commit: function (user, room, value) {
+      _store.setStatusForUser(user, room, 'committed', value);
     },
 
     read: function (req, res) {

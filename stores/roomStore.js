@@ -34,9 +34,9 @@ module.exports = function (options) {
       find({}, options);
     },
 
-    setStatusForUser: function(user, room, status) {
-      rooms.update({ slug: room.slug, users: { $elemMatch: { username: user.username } } },
-                   { $set: { 'users.$.status': status } } );
+    setStatusForUser: function(user, room, status, value) {
+      rooms.update({ slug: room.slug, users: { $elemMatch: { id: user.id } } },
+                   { $set: { 'users.$.status': status, 'users.$.value': value } } );
     },
 
     addUserToRoom: function(user, slug, options) {
