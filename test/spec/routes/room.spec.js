@@ -9,18 +9,19 @@ describe('Route: room', function () {
       room,
       _req_,
       _res_,
-      socket,
       mockBroadcast,
-      currentRoom;
+      currentRoom,
+      io,
+      socketsStub;
 
   beforeEach(function () {
+    io = { sockets: { on: function () {}, broadcast: { emit: function () {} } } };
     currentRoom = { slug: 'dummyslug', key: '<roomKey>', host: host };
-    room = require('../../../routes/room')({ roomStore: roomStore });
+    socketsStub = sinon.stub(io.sockets, 'on');
+    room = require('../../../routes/room')({ roomStore: roomStore, io: io });
     _req_ = { param: function () {} };
     _res_ = { json: function () {}, send: function () {} };
-    socket = { on: function () {}, broadcast: { emit: function () {} } };
-    mockBroadcast = sinon.mock(socket.broadcast);
-    room.setSocket(socket);
+    mockBroadcast = sinon.mock(io.sockets.broadcast);
   });
 
   afterEach(function () {
@@ -58,13 +59,6 @@ describe('Route: room', function () {
         room.create(_req_, _res_);
         mockResponse.verify();
       });
-
-      it('should start listening for room-specific messages', function () {
-        var mockSocket= sinon.mock(socket);
-        mockSocket.expects('on').withArgs('message <roomKey>');
-        room.create(_req_, _res_);
-        mockSocket.verify();
-      });
     });
 
     describe('onfailure', function () {
@@ -77,30 +71,52 @@ describe('Route: room', function () {
     });
   });
 
-  describe('on socket message "message <roomKey>"', function () {
-    var paramsStub, mockResponse, createStub, socketStub;
+  describe('on socket message "message"', function () {
+    var paramsStub, mockResponse, createStub, socket;
 
     beforeEach(function () {
-      paramsStub = sinon.stub(_req_, 'param')
-                        .withArgs('slug').returns('dummyslug')
-                        .withArgs('host').returns(host);
-      mockResponse = sinon.mock(_res_);
-      createStub = sinon.stub(roomStore, 'create');
-      createStub.yieldsTo('onsuccess', currentRoom);
-      socketStub = sinon.stub(socket, 'on');
-      room.create(_req_, _res_);
+      socket = { on: function () {}, emit: function () {}, broadcast: { emit: function () {} } };
     });
 
     afterEach(function () {
-      roomStore.create.restore();
     });
 
     it('should re-broadcast all messages to room', function () {
-      var payload = { whatever: 'data' };
+    });
 
-      mockBroadcast.expects('emit').withArgs('message <roomKey>', payload);
-      socketStub.yield(payload);
-      mockBroadcast.verify();
+    describe('with type "join"', function () {
+      var payload, socketStub, addUserStub;
+      beforeEach(function () {
+        payload = { type: 'join', slug: 'dummyslug', user: host };
+        spyOn(roomStore, 'addUserToRoom');
+        spyOn(socket.broadcast, 'emit');
+        spyOn(socket, 'emit');
+        socketStub = sinon.stub(socket, 'on');
+        addUserStub = sinon.stub(roomStore, 'addUserToRoom');
+        socketsStub.yield(socket);
+        socketStub.yield(payload);
+      });
+
+      it('should add current user to room', function () {
+        expect(roomStore.addUserToRoom.getCall(0).args[0]).toEqual(host);
+        expect(roomStore.addUserToRoom.getCall(0).args[1]).toEqual('dummyslug');
+      });
+
+      it('should broadcast a join event', function () {
+        addUserStub.yieldTo('onsuccess', { slug: 'whatijustpassed' });
+        expect(socket.broadcast.emit).toHaveBeenCalledWith('message',
+                                                           { type: 'join',
+                                                             user: host,
+                                                             room: { slug: 'whatijustpassed' } });
+      });
+
+      it('should emit a join accepted event back to user', function () {
+        addUserStub.yieldTo('onsuccess', { slug: 'whatijustpassed' });
+        expect(socket.emit).toHaveBeenCalledWith('message',
+                                                 { type: 'joinAccepted',
+                                                   user: host,
+                                                   room: { slug: 'whatijustpassed' } });
+      });
     });
 
     describe('with type "commit"', function () {
@@ -110,53 +126,7 @@ describe('Route: room', function () {
       });
 
       it('should update the current user with the status "committed"', function () {
-        var mockCommit = sinon.mock(roomStore)
-                              .expects('setStatusForUser')
-                              .withArgs(host, currentRoom, 'committed', 40);
-        socketStub.yield(payload);
-        mockCommit.verify();
       });
-    });
-  });
-
-  describe('join', function () {
-    var paramsStub, mockResponse, addUserToRoomStub;
-
-    beforeEach(function () {
-      paramsStub = sinon.stub(_req_, 'param')
-                        .withArgs('slug').returns('dummyslug')
-                        .withArgs('user').returns(host);
-      mockResponse = sinon.mock(_res_);
-      addUserToRoomStub = sinon.stub(roomStore, 'addUserToRoom');
-    });
-
-    it('should broadcast user join event to room', function () {
-      mockBroadcast.expects('emit')
-                   .withArgs('message <roomKey>', { user: host, room: currentRoom, type: 'join' });
-
-      addUserToRoomStub.yieldsTo('onsuccess', currentRoom);
-      mockResponse.expects('json').withArgs(currentRoom);
-      room.join(_req_, _res_);
-      mockResponse.verify();
-      mockBroadcast.verify();
-    });
-
-    it('should return json of the room returned from store', function () {
-      addUserToRoomStub.yieldsTo('onsuccess', currentRoom);
-      mockResponse.expects('json').withArgs(currentRoom);
-      room.join(_req_, _res_);
-      mockResponse.verify();
-    });
-
-    it('should return 500 error code on failure', function () {
-      addUserToRoomStub.yieldsTo('onfailure');
-      mockResponse.expects('send').withArgs(sinon.match.any, 500);
-      room.join(_req_, _res_);
-      mockResponse.verify();
-    });
-
-    afterEach(function () {
-      roomStore.addUserToRoom.restore();
     });
   });
 });

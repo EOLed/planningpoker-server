@@ -6,11 +6,11 @@ var express = require('express'),
     routes = require('./routes'),
     db = require('mongojs') ('planningpoker'),
     roomStore = require('./stores/roomStore') ({ db: db }),
-    room = require('./routes/room') ({ roomStore: roomStore }),
     path = require('path'),
     app = express(),
     server = require('http').createServer(app),
-    io = require('socket.io').listen(server);
+    io = require('socket.io').listen(server),
+    room = require('./routes/room') ({ roomStore: roomStore, io: io });
 
 // all environments
 app.set('port', process.env.PORT || 3000);
@@ -35,14 +35,9 @@ app.get('/rooms', room.index);
 app.post('/room', room.create);
 app.get('/room/:slug', room.read);
 app.delete('/room/:slug', room.destroy);
-app.put('/room/join/:slug', room.join);
 
 server.listen(app.get('port'), function (){
   console.log('Planning Poker server listening on port ' + app.get('port'));
-});
-
-io.sockets.on('connection', function (socket) {
-  room.setSocket(socket);
 });
 
 exports = module.exports = server;
