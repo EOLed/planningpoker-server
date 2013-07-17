@@ -1,11 +1,15 @@
 module.exports = function (options) {
-  var _socket;
-  var _store = options.roomStore;
+  var socket;
+  var store = options.roomStore;
 
-  var _broadcastUserJoinEvent = function (room, user) {
+  var broadcastUserJoinEvent = function (room, user) {
     var eventName = 'message ' + room.key;
     var message = { user: user, room: room, type: 'join' };
-    _socket.broadcast.emit(eventName, message);
+    socket.broadcast.emit(eventName, message);
+  };
+
+  var commit = function (user, room, value) {
+    store.setStatusForUser(user, room, 'committed', value);
   };
 
   return {
@@ -14,13 +18,14 @@ module.exports = function (options) {
       var host = req.param('host');
 
       var onsuccess = function (room) {
-        console.log('listening for "message ' +  room.key + '" messages...');
-        _socket.on('message ' + room.key, function (data) {
+        var messageKey = 'message ' + room.key;
+        console.log('listening for "' + messageKey + '" messages...');
+        socket.on(messageKey, function (data) {
           console.log('message received.... ' + JSON.stringify(data));
           if (data.type === 'commit') {
             commit(data.user, data.room, data.value);
           }
-          _socket.broadcast.emit('message ' + room.key, data);
+          socket.broadcast.emit(messageKey, data);
         });
 
         return res.json(room);
@@ -30,21 +35,20 @@ module.exports = function (options) {
         return res.send(err, 500);
       };
 
-      _store.create({ slug: slug, host: host }, { onsuccess: onsuccess, onfailure: onfailure });
-    },
+      var key = Math.random().toString(36).substring(7);
 
-    commit: function (user, room, value) {
-      _store.setStatusForUser(user, room, 'committed', value);
+      store.create({ slug: slug, key: key, host: host },
+                   { onsuccess: onsuccess, onfailure: onfailure });
     },
 
     read: function (req, res) {
       var slug = req.param('slug');
-      res.json(_store.findBySlug(slug));
+      res.json(store.findBySlug(slug));
     },
 
     destroy: function (req, res) {
       var slug = req.param('slug');
-      res.json(_store.destroy(slug));
+      res.json(store.destroy(slug));
     },
 
     index: function (req, res) {
@@ -57,7 +61,7 @@ module.exports = function (options) {
           res.send(err, 500);
         }
       };
-      _store.findAll(options);
+      store.findAll(options);
     },
 
     join: function (req, res) {
@@ -75,15 +79,16 @@ module.exports = function (options) {
       };
 
       var onsuccess = function(room) {
-        _broadcastUserJoinEvent(room, user);
+        broadcastUserJoinEvent(room, user);
         res.json(room, 200);
       };
 
-      var room = _store.addUserToRoom(user, slug, { onsuccess: onsuccess, onfailure: onfailure });
+      var room = store.addUserToRoom(user, slug, { onsuccess: onsuccess, onfailure: onfailure });
     },
 
-    setSocket: function (socket) {
-      _socket = socket;
+    setSocket: function (sock) {
+      console.log('setting socket...');
+      socket = sock;
     }
   };
 };

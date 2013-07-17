@@ -18,6 +18,7 @@
     "grunt-jasmine-node": "~0.1.0",
     "jasmine-node": "~1.10.2",
     "sinon": "~1.7.3",
-    "mongojs": "~0.7.9"
+    "mongojs": "~0.7.9",
+    "grunt-shell": "~0.3.1"
   }
 }

@@ -40,7 +40,9 @@ module.exports = function (options) {
     },
 
     addUserToRoom: function(user, slug, options) {
-      rooms.findAndModify({ query: { slug: slug }, update: { $addToSet: { users: user } }, new: true },
+      rooms.findAndModify({ query: { slug: slug },
+                            update: { $addToSet: { users: user } },
+                            new: true },
                           function (err, room) {
                             doCallback(options, err, room);
                           });
