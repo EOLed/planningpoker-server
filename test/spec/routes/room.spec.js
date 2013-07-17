@@ -16,7 +16,7 @@ describe('Route: room', function () {
 
   beforeEach(function () {
     io = { sockets: { on: function () {}, broadcast: { emit: function () {} } } };
-    currentRoom = { slug: 'dummyslug', key: '<roomKey>', host: host };
+    currentRoom = { slug: 'dummyslug', host: host };
     socketsStub = sinon.stub(io.sockets, 'on');
     room = require('../../../routes/room')({ roomStore: roomStore, io: io });
     _req_ = { param: function () {} };
@@ -46,7 +46,6 @@ describe('Route: room', function () {
       room.create(_req_, _res_);
       expect(createStub.getCall(0).args[0].slug).toEqual('dummyslug');
       expect(createStub.getCall(0).args[0].host).toEqual(host);
-      expect(createStub.getCall(0).args[0].key).toBeDefined();
     });
 
     describe('onsuccess', function () {
@@ -107,6 +106,7 @@ describe('Route: room', function () {
         expect(socket.broadcast.emit).toHaveBeenCalledWith('message',
                                                            { type: 'join',
                                                              user: host,
+                                                             slug: 'whatijustpassed',
                                                              room: { slug: 'whatijustpassed' } });
       });
 
@@ -115,6 +115,7 @@ describe('Route: room', function () {
         expect(socket.emit).toHaveBeenCalledWith('message',
                                                  { type: 'joinAccepted',
                                                    user: host,
+                                                   slug: 'whatijustpassed',
                                                    room: { slug: 'whatijustpassed' } });
       });
     });

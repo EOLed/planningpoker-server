@@ -28,8 +28,8 @@ module.exports = function (options) {
 
     var onsuccess = function(room) {
       console.log('join success');
-      socket.broadcast.emit('message', { type: 'join', user: user, room: room });
-      socket.emit('message', { type: 'joinAccepted', user: user, room: room });
+      socket.broadcast.emit('message', { type: 'join', slug: room.slug, user: user, room: room });
+      socket.emit('message', { type: 'joinAccepted', slug: room.slug, user: user, room: room });
     };
 
     console.log('adding user to room');
