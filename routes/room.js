@@ -26,6 +26,21 @@ module.exports = function (options) {
     store.setStatusForUser(options);
   };
 
+  var restart = function (options) {
+    var room = options.room;
+    var socket = options.socket;
+
+    options.onsuccess = function (room) {
+      socket.broadcast.emit('message', { type: 'restart', slug: room.slug, room: room });
+    };
+
+    options.onfailure = function (err) {
+      console.error('err: ' + err);
+    };
+
+    store.clearUserStatusesForRoom(options);
+  };
+
   var join = function (options) {
     var user = options.user;
     var slug = options.slug;
@@ -53,6 +68,8 @@ module.exports = function (options) {
         commit({ user: data.user, room: data.room, value: data.value, socket: socket });
       } else if (data.type === 'join') {
         join({ slug: data.slug, user: data.user, socket: socket });
+      } else if (data.type === 'restart') {
+        restart({ room: data.room, socket: socket });
       }
     });
   });

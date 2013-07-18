@@ -120,6 +120,33 @@ describe('Route: room', function () {
       });
     });
 
+    describe('with type "restart"', function () {
+      var payload, socketStub, clearStatusStub;
+      beforeEach(function () {
+        payload = { type: 'restart', room: { slug: 'myroom' } };
+        spyOn(roomStore, 'clearUserStatusesForRoom');
+        spyOn(socket.broadcast, 'emit');
+        spyOn(socket, 'emit');
+        socketStub = sinon.stub(socket, 'on');
+        clearStatusStub = sinon.stub(roomStore, 'clearUserStatusesForRoom');
+        socketsStub.yield(socket);
+        socketStub.yield(payload);
+      });
+
+      it('should clear all user statuses in room', function () {
+        var options = roomStore.clearUserStatusesForRoom.getCall(0).args[0];
+        expect(options.room).toEqual({ slug: 'myroom' });
+      });
+
+      it('should broadcast a restart event', function () {
+        clearStatusStub.yieldTo('onsuccess', { slug: 'whatijustpassed' });
+        expect(socket.broadcast.emit).toHaveBeenCalledWith('message',
+                                                           { type: 'restart',
+                                                             slug: 'whatijustpassed',
+                                                             room: { slug: 'whatijustpassed' } });
+      });
+    });
+
     describe('with type "commit"', function () {
       var payload, socketStub, setStatusStub;
       beforeEach(function () {

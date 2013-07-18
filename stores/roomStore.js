@@ -49,6 +49,17 @@ module.exports = function (options) {
                           });
     },
 
+    clearUserStatusesForRoom: function (options) {
+      var room = options.room;
+
+      rooms.findAndModify({ query: { slug: room.slug, users: { $elemMatch: {} } },
+                            update: { $set: { 'users.$.status': { type: 'active' } } },
+                            new: true },
+                          function (err, room) {
+                            doCallback(options, err, room);
+                          });
+    },
+
     addUserToRoom: function(user, slug, options) {
       rooms.find({ slug: slug, users: { $elemMatch: { id: user.id } } }, function (err, matches) {
         if (matches.length === 0) {
