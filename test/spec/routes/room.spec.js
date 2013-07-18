@@ -121,12 +121,32 @@ describe('Route: room', function () {
     });
 
     describe('with type "commit"', function () {
-      var payload;
+      var payload, socketStub, setStatusStub;
       beforeEach(function () {
-        payload = { user: host, room: currentRoom, value: 40, type: 'commit' };
+        payload = { type: 'commit', room: { slug: 'myroom' }, user: host, value: '1' };
+        spyOn(roomStore, 'setStatusForUser');
+        spyOn(socket.broadcast, 'emit');
+        spyOn(socket, 'emit');
+        socketStub = sinon.stub(socket, 'on');
+        setStatusStub = sinon.stub(roomStore, 'setStatusForUser');
+        socketsStub.yield(socket);
+        socketStub.yield(payload);
       });
 
       it('should update the current user with the status "committed"', function () {
+        var options = roomStore.setStatusForUser.getCall(0).args[0];
+        expect(options.user).toEqual(host);
+        expect(options.room).toEqual({ slug: 'myroom' });
+        expect(options.status).toEqual('committed');
+        expect(options.value).toEqual('1');
+      });
+
+      it('should broadcast a commit event', function () {
+        setStatusStub.yieldTo('onsuccess', { slug: 'whatijustpassed' });
+        expect(socket.broadcast.emit).toHaveBeenCalledWith('message',
+                                                           { type: 'commit',
+                                                             slug: 'whatijustpassed',
+                                                             room: { slug: 'whatijustpassed' } });
       });
     });
   });

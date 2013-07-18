@@ -34,9 +34,19 @@ module.exports = function (options) {
       find({}, options);
     },
 
-    setStatusForUser: function(user, room, status, value) {
-      rooms.update({ slug: room.slug, users: { $elemMatch: { id: user.id } } },
-                   { $set: { 'users.$.status': status, 'users.$.value': value } } );
+    setStatusForUser: function(options) {
+      var user = options.user,
+          room = options.room,
+          status = options.status,
+          value = options.value;
+
+      rooms.findAndModify({ query: { slug: room.slug, users: { $elemMatch: { id: user.id } } },
+                            update: { $addToSet: { 'users.$.status': status,
+                                                   'users.$.value': value } },
+                            new: true },
+                          function (err, room) {
+                            doCallback(options, err, room);
+                          });
     },
 
     addUserToRoom: function(user, slug, options) {
