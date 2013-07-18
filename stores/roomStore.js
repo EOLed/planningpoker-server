@@ -1,6 +1,8 @@
 module.exports = function (options) {
   var rooms = options.db.collection('rooms');
 
+  rooms.remove();
+
   var find = function (criteria, options) {
     rooms.find(criteria, function(err, rooms) {
       doCallback(options, err, rooms);
