@@ -13,14 +13,14 @@ module.exports = function (options) {
     var room = options.room;
     var value = options.value;
     var socket = options.socket;
-    options.status = 'committed';
+    options.status = { type: 'committed', value: value };
 
     options.onsuccess = function (room) {
       socket.broadcast.emit('message', { type: 'commit', slug: room.slug, room: room });
     };
 
     options.onfailure = function (err) {
-      console.log('err: ' + err);
+      console.error('err: ' + err);
     };
 
     store.setStatusForUser(options);
@@ -36,6 +36,7 @@ module.exports = function (options) {
     }
 
     var onfailure = function (err) {
+      console.error('err: ' + err);
     };
 
     var onsuccess = function(room) {

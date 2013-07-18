@@ -3,7 +3,7 @@
 'use strict';
 
 describe('Route: room', function () {
-  var roomStore = require('../../../stores/roomStore') ({ db: { collection: function () {} } }),
+  var roomStore = require('../../../stores/roomStore') ({ db: { collection: function () { return { remove: function () {} }; } } }),
       sinon = require('sinon'),
       host = { id: 'hostUserId', username: 'achan', name: 'Amos Chan' },
       room,
@@ -137,8 +137,7 @@ describe('Route: room', function () {
         var options = roomStore.setStatusForUser.getCall(0).args[0];
         expect(options.user).toEqual(host);
         expect(options.room).toEqual({ slug: 'myroom' });
-        expect(options.status).toEqual('committed');
-        expect(options.value).toEqual('1');
+        expect(options.status).toEqual({ type: 'committed', value: '1' });
       });
 
       it('should broadcast a commit event', function () {

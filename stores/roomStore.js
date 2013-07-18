@@ -11,7 +11,7 @@ module.exports = function (options) {
 
   var doCallback = function(options, err, value) {
     if (err) {
-      if (typeof options.onfailure === 'undefined') {
+      if (options.onfailure) {
         return options.onfailure(err);
       }
     } else if (options.onsuccess) {
@@ -39,12 +39,10 @@ module.exports = function (options) {
     setStatusForUser: function(options) {
       var user = options.user,
           room = options.room,
-          status = options.status,
-          value = options.value;
+          status = options.status;
 
       rooms.findAndModify({ query: { slug: room.slug, users: { $elemMatch: { id: user.id } } },
-                            update: { $addToSet: { 'users.$.status': status,
-                                                   'users.$.value': value } },
+                            update: { $set: { 'users.$.status': status } },
                             new: true },
                           function (err, room) {
                             doCallback(options, err, room);
@@ -52,12 +50,18 @@ module.exports = function (options) {
     },
 
     addUserToRoom: function(user, slug, options) {
-      rooms.findAndModify({ query: { slug: slug },
-                            update: { $addToSet: { users: user } },
-                            new: true },
-                          function (err, room) {
-                            doCallback(options, err, room);
-                          });
+      rooms.find({ slug: slug, users: { $elemMatch: { id: user.id } } }, function (err, matches) {
+        if (matches.length === 0) {
+          rooms.findAndModify({ query: { slug: slug },
+                                update: { $addToSet: { users: user } },
+                                new: true },
+                              function (err, room) {
+                                doCallback(options, err, room);
+                              });
+        } else {
+          doCallback(options, err, matches[0]);
+        }
+      });
     },
 
     destroy: function (slug) {
