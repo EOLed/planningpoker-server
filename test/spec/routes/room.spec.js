@@ -138,6 +138,13 @@ describe('Route: room', function () {
         expect(options.room).toEqual({ slug: 'myroom' });
       });
 
+      it('should emit a restart event back to host', function () {
+        clearStatusStub.yieldTo('onsuccess', { slug: 'whatijustpassed' });
+        expect(socket.emit).toHaveBeenCalledWith('message', { type: 'restart',
+                                                              slug: 'whatijustpassed',
+                                                              room: { slug: 'whatijustpassed' } });
+      });
+
       it('should broadcast a restart event', function () {
         clearStatusStub.yieldTo('onsuccess', { slug: 'whatijustpassed' });
         expect(socket.broadcast.emit).toHaveBeenCalledWith('message',

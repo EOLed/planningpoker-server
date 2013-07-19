@@ -51,9 +51,16 @@ module.exports = function (options) {
 
     clearUserStatusesForRoom: function (options) {
       var room = options.room;
+      var users = options.room.users;
+      
+      for (var i = 0; i < users.length; i++) {
+        var currentUser = users[i];
+        currentUser.status = { type: 'active' };
+      }
 
-      rooms.findAndModify({ query: { slug: room.slug, users: { $elemMatch: {} } },
-                            update: { $set: { 'users.$.status': { type: 'active' } } },
+
+      rooms.findAndModify({ query: { slug: room.slug },
+                            update: { $set: { users: users } },
                             new: true },
                           function (err, room) {
                             doCallback(options, err, room);

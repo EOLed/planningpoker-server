@@ -31,6 +31,7 @@ module.exports = function (options) {
     var socket = options.socket;
 
     options.onsuccess = function (room) {
+      socket.emit('message', { type: 'restart', slug: room.slug, room: room });
       socket.broadcast.emit('message', { type: 'restart', slug: room.slug, room: room });
     };
 
