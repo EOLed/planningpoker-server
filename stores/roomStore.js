@@ -76,7 +76,7 @@ module.exports = function (options) {
                           function (err, room) {
                             doCallback(options, err, room);
                           });
-                          
+
       prolongRoomLife(room.slug);
     },
 

@@ -3,7 +3,19 @@
 'use strict';
 
 describe('Route: room', function () {
-  var roomStore = require('../../../stores/roomStore') ({ db: { collection: function () { return { remove: function () {} }; } } }),
+  var roomStore = require('../../../stores/roomStore') (
+    {
+      db: {
+        collection: function () {
+          return {
+            remove: function () {
+            },
+            ensureIndex: function () {
+            }
+          };
+        }
+      }
+    }),
       sinon = require('sinon'),
       host = { id: 'hostUserId', username: 'achan', name: 'Amos Chan' },
       room,
