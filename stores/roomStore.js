@@ -1,7 +1,7 @@
 module.exports = function (options) {
   var rooms = options.db.collection('rooms');
 
-  rooms.remove();
+  rooms.ensureIndex( { "lastUpdated": 1 }, { expireAfterSeconds: 5 * 60 * 60 } );
 
   var find = function (criteria, options) {
     rooms.find(criteria, function(err, rooms) {
@@ -19,12 +19,21 @@ module.exports = function (options) {
     }
   };
 
+  var prolongRoomLife = function (slug) {
+    rooms.findAndModify({ query: { slug: slug },
+                          update: { $set: { lastUpdated: new Date() } },
+                          new: true });
+  };
+
   return {
     create: function (room, options) {
       room.key = Math.random().toString(36).substring(7);
+
       rooms.save(room, function(err, room) {
         doCallback(options, err, room);
       });
+
+      prolongRoomLife(room.slug);
       return room;
     },
 
@@ -47,6 +56,8 @@ module.exports = function (options) {
                           function (err, room) {
                             doCallback(options, err, room);
                           });
+
+      prolongRoomLife(room.slug);
     },
 
     clearUserStatusesForRoom: function (options) {
@@ -65,6 +76,8 @@ module.exports = function (options) {
                           function (err, room) {
                             doCallback(options, err, room);
                           });
+                          
+      prolongRoomLife(room.slug);
     },
 
     addUserToRoom: function(user, slug, options) {
@@ -80,6 +93,9 @@ module.exports = function (options) {
           doCallback(options, err, matches[0]);
         }
       });
+
+
+      prolongRoomLife(slug);
     },
 
     destroy: function (slug) {
