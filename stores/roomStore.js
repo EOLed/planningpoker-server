@@ -45,6 +45,19 @@ module.exports = function (options) {
       find({}, options);
     },
 
+    setUsernameForUser: function(options) {
+      var user = options.user, room = options.room;
+
+      rooms.findAndModify({ query: { slug: room.slug, users: { $elemMatch: { id: user.id } } },
+                            update: { $set: { 'users.$.username': user.username } },
+                            new: true },
+                          function (err, room) {
+                            doCallback(options, err, room);
+                          });
+
+      prolongRoomLife(room.slug);
+    },
+
     setStatusForUser: function(options) {
       var user = options.user,
           room = options.room,

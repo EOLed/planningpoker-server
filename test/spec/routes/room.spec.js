@@ -95,6 +95,34 @@ describe('Route: room', function () {
     it('should re-broadcast all messages to room', function () {
     });
 
+    describe('with type "nick"', function () {
+      var payload, socketStub, setUsernameStub;
+      beforeEach(function () {
+        payload = { type: 'nick', room: { slug: 'dummyslug' }, user: host };
+        spyOn(roomStore, 'setUsernameForUser');
+        spyOn(socket.broadcast, 'emit');
+        spyOn(socket, 'emit');
+        socketStub = sinon.stub(socket, 'on');
+        setUsernameStub = sinon.stub(roomStore, 'setUsernameForUser');
+        socketsStub.yield(socket);
+        socketStub.yield(payload);
+      });
+
+      it('should set username for current user', function () {
+        var args = roomStore.setUsernameForUser.getCall(0).args[0];
+        expect(args.user).toEqual(host);
+        expect(args.room.slug).toEqual('dummyslug');
+      });
+
+      it('should broadcast a nickname change event', function () {
+        setUsernameStub.yieldTo('onsuccess', { slug: 'whatijustpassed' });
+        expect(socket.broadcast.emit).toHaveBeenCalledWith('message',
+                                                           { type: 'nick',
+                                                             user: host,
+                                                             slug: 'whatijustpassed' });
+      });
+    });
+
     describe('with type "join"', function () {
       var payload, socketStub, addUserStub;
       beforeEach(function () {
