@@ -23,9 +23,8 @@ app.use(express.methodOverride());
 app.use(express.cookieParser('your secret here'));
 app.use(express.session());
 app.use(app.router);
-app.use(require('less-middleware')({ src: __dirname + '/angular/app' }));
-app.use('/angular/', express.static(path.join(__dirname, 'angular/app')));
-app.use('/ember/', express.static(path.join(__dirname, 'ember/app')));
+app.use(require('less-middleware')({ src: __dirname + '/client/app' }));
+app.use(express.static(path.join(__dirname, 'client/app')));
 
 // development only
 if ('development' == app.get('env')) {
