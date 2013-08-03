@@ -1,6 +1,3 @@
-[submodule "angular"]
-	path = angular
+[submodule "webapp"]
+	path = webapp
 	url = git@github.com:achan/planningpoker
-[submodule "ember"]
-	path = ember
-	url = git@github.com:achan/planningpoker-ember
